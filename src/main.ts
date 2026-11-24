@@ -2,6 +2,7 @@ import './style.css';
 import { DEFAULT_CONFIG, fileName, parseHash, serializeHash, type Config, type Theme } from './config';
 import { createStage, isWebGLAvailable, type Stage } from './scene';
 import { createUI, type ViewState } from './ui';
+import { installFrameMeter } from './fps';
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
@@ -132,3 +133,5 @@ darkScheme.addEventListener('change', (event) => {
 stage?.setTheme(view.theme);
 setView(view);
 setConfig(config);
+
+if (stage && new URLSearchParams(location.search).has('fps')) installFrameMeter(stage);
