@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Konfigurator 3D: interaktywny podgląd produktu w przeglądarce. Wybierz kształt, kolor i wykończenie, a cena przeliczy się od razu." />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <title>Konfigurator 3D</title>
+  </head>
+  <body>
+    <div class="app">
+      <header class="app-header">
+        <h1 class="app-title">Konfigurator 3D</h1>
+        <p class="app-subtitle">Demo: interaktywny podgląd produktu w przeglądarce</p>
+      </header>
+
+      <main class="layout">
+        <section class="stage" aria-label="Podgląd 3D produktu">
+          <div class="stage-canvas" id="stage"></div>
+          <p class="stage-hint" id="stage-hint">Przeciągnij, aby obrócić · kółko myszy, aby przybliżyć</p>
+          <div class="stage-fallback" id="stage-fallback" role="alert" hidden>
+            <p class="stage-fallback-title">Podgląd 3D jest niedostępny</p>
+            <p>Twoja przeglądarka lub karta graficzna nie obsługuje WebGL 2. Konfigurator i cena nadal działają. Spróbuj w aktualnej wersji Chrome, Firefoksa, Safari lub Edge.</p>
+          </div>
+        </section>
+
+        <aside class="panel" aria-label="Opcje produktu">
+          <section class="group" aria-labelledby="g-shape">
+            <h2 class="group-title" id="g-shape">Kształt</h2>
+            <div class="options options-shape" role="group" aria-labelledby="g-shape" id="opt-shape"></div>
+          </section>
+
+          <section class="group" aria-labelledby="g-color">
+            <div class="group-head">
+              <h2 class="group-title" id="g-color">Kolor</h2>
+              <span class="group-value" id="color-name" aria-hidden="true"></span>
+            </div>
+            <div class="options options-color" role="group" aria-labelledby="g-color" id="opt-color"></div>
+          </section>
+
+          <section class="group" aria-labelledby="g-finish">
+            <h2 class="group-title" id="g-finish">Wykończenie</h2>
+            <div class="options options-finish" role="group" aria-labelledby="g-finish" id="opt-finish"></div>
+          </section>
+
+          <section class="group" aria-labelledby="g-view">
+            <h2 class="group-title" id="g-view">Widok</h2>
+            <div class="view-rows">
+              <div class="row">
+                <span class="row-label" id="l-rotate">Obrót automatyczny</span>
+                <button type="button" class="switch" id="toggle-rotate" aria-pressed="false" aria-label="Obrót automatyczny"><span class="switch-knob"></span></button>
+              </div>
+              <div class="row row-slider">
+                <label class="row-label" for="speed">Prędkość</label>
+                <input type="range" id="speed" min="2" max="20" step="1" value="6" />
+                <output class="row-value" id="speed-value" for="speed">6 obr./min</output>
+              </div>
+              <div class="row">
+                <span class="row-label" id="l-wire">Siatka (wireframe)</span>
+                <button type="button" class="switch" id="toggle-wire" aria-pressed="false" aria-label="Siatka (wireframe)"><span class="switch-knob"></span></button>
+              </div>
+              <div class="row">
+                <span class="row-label" id="l-theme">Tło</span>
+                <div class="segmented" role="group" aria-labelledby="l-theme">
+                  <button type="button" class="segment" data-theme-value="light" aria-pressed="true">Jasne</button>
+                  <button type="button" class="segment" data-theme-value="dark" aria-pressed="false">Ciemne</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="summary" aria-label="Podsumowanie">
+            <p class="summary-text" id="summary"></p>
+            <p class="summary-total" aria-live="polite">Razem: <strong id="price"></strong></p>
+            <div class="actions">
+              <button type="button" class="btn btn-primary" id="btn-png">Zapisz obraz PNG</button>
+              <button type="button" class="btn" id="btn-link">Kopiuj link</button>
+            </div>
+          </section>
+        </aside>
+      </main>
+
+      <footer class="app-footer">Three.js · TypeScript · Vite · dane przykładowe</footer>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
