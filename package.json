@@ -1,0 +1,27 @@
+{
+  "name": "demo-konfigurator-3d",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Interaktywny konfigurator produktu 3D w przeglądarce (Three.js, TypeScript, Vite)",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "three": "^0.187.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.187.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.1"
+  },
+  "author": "Gordiv",
+  "engines": {
+    "node": ">=20.19"
+  }
+}
