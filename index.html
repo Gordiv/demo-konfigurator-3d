@@ -2,89 +2,231 @@
 <html lang="pl">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Konfigurator 3D: interaktywny podgląd produktu w przeglądarce. Wybierz kształt, kolor i wykończenie, a cena przeliczy się od razu." />
-    <meta name="color-scheme" content="light dark" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="Konfigurator 3D: interaktywny podgląd ceramiki w przeglądarce. Sześć modeli, płynna zmiana kształtu, kolory, wykończenia, oświetlenie, wymiary, zapis i porównanie konfiguracji." />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#0b0c12" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-    <title>Konfigurator 3D</title>
+    <title>Konfigurator 3D · Kolekcja Forma</title>
+    <script>
+      // Apply the saved theme before first paint to avoid a flash.
+      try {
+        var t = localStorage.getItem('konfigurator-3d:theme');
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    </script>
   </head>
   <body>
+    <div class="backdrop" aria-hidden="true">
+      <div class="bg-set" data-set="0"><span class="blob blob-1"></span><span class="blob blob-2"></span><span class="blob blob-3"></span></div>
+      <div class="bg-set" data-set="1"><span class="blob blob-1"></span><span class="blob blob-2"></span><span class="blob blob-3"></span></div>
+      <div class="bg-floor"></div>
+      <div class="bg-vignette"></div>
+      <div class="bg-grain"></div>
+    </div>
+
+    <a class="skip-link" href="#panel">Przejdź do opcji produktu</a>
+
     <div class="app">
-      <header class="app-header">
-        <h1 class="app-title">Konfigurator 3D</h1>
-        <p class="app-subtitle">Demo: interaktywny podgląd produktu w przeglądarce</p>
+      <header class="topbar enter" style="--i: 0">
+        <div class="brand">
+          <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+            <defs>
+              <linearGradient id="brand-g" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="currentColor" stop-opacity="1" />
+                <stop offset="1" stop-color="currentColor" stop-opacity="0.45" />
+              </linearGradient>
+            </defs>
+            <path fill="url(#brand-g)" d="M12.6 3h6.8v2.2c0 1.8 5.1 4 5.1 11.3 0 7-3.8 12.5-8.5 12.5S7.5 23.5 7.5 16.5C7.5 9.2 12.6 7 12.6 5.2z" />
+          </svg>
+          <div class="brand-text">
+            <span class="brand-name">Forma</span>
+            <span class="brand-sub">Konfigurator 3D</span>
+          </div>
+        </div>
+        <nav class="topbar-actions" aria-label="Narzędzia">
+          <button type="button" class="icon-btn" id="btn-undo" aria-label="Cofnij" title="Cofnij (Ctrl+Z)" disabled><span data-icon="undo"></span></button>
+          <button type="button" class="icon-btn" id="btn-redo" aria-label="Ponów" title="Ponów (Ctrl+Y)" disabled><span data-icon="redo"></span></button>
+          <span class="topbar-divider" aria-hidden="true"></span>
+          <button type="button" class="chip-btn" id="btn-saved" title="Zapisane konfiguracje (S)">
+            <span data-icon="bookmark"></span><span class="chip-label">Zapisane</span><span class="chip-count" id="saved-count">0</span>
+          </button>
+          <button type="button" class="icon-btn" id="btn-theme" aria-label="Jasny motyw" title="Zmień motyw (T)"><span class="theme-icon theme-icon-sun" data-icon="sun"></span><span class="theme-icon theme-icon-moon" data-icon="moon"></span></button>
+          <button type="button" class="icon-btn" id="btn-help" aria-label="Skróty klawiszowe" title="Skróty klawiszowe (?)"><span data-icon="keyboard"></span></button>
+        </nav>
       </header>
 
       <main class="layout">
-        <section class="stage" aria-label="Podgląd 3D produktu">
+        <section class="stage" id="stage-wrap" aria-label="Podgląd 3D produktu">
           <div class="stage-canvas" id="stage"></div>
-          <p class="stage-hint" id="stage-hint">Przeciągnij, aby obrócić · kółko myszy, aby przybliżyć</p>
+
+          <div class="intro enter" style="--i: 1" id="intro">
+            <p class="eyebrow">Kolekcja Forma<span class="eyebrow-more"> · ceramika ręcznie szkliwiona</span></p>
+            <h1 class="intro-title"><span id="intro-name">Wazon Aura</span></h1>
+            <p class="intro-tagline" id="intro-tagline"></p>
+            <ul class="intro-specs" id="intro-specs"></ul>
+          </div>
+
+          <div class="stage-controls">
+            <div class="dock glass-sm enter" style="--i: 3" id="env-dock">
+              <span class="dock-label" id="env-label">Otoczenie</span>
+              <div class="seg seg-env" role="group" aria-labelledby="env-label" id="opt-env" style="--n: 4"><span class="seg-pill" aria-hidden="true"></span></div>
+            </div>
+            <div class="dock glass-sm enter" style="--i: 4">
+              <div class="seg seg-views" role="group" aria-label="Widok kamery" id="opt-view" style="--n: 4"><span class="seg-pill" aria-hidden="true"></span></div>
+              <span class="dock-divider" aria-hidden="true"></span>
+              <button type="button" class="tool-btn" id="toggle-presentation" aria-pressed="false" title="Tryb prezentacji (P)"><span data-icon="rotate"></span><span class="tool-label">Prezentacja</span></button>
+              <button type="button" class="tool-btn" id="toggle-dims" aria-pressed="false" title="Wymiary i moduły (W)"><span data-icon="ruler"></span><span class="tool-label">Wymiary</span></button>
+            </div>
+            <p class="stage-hint" id="stage-hint"><span id="stage-hint-text">Przeciągnij, aby obrócić · kółko myszy, aby przybliżyć</span></p>
+          </div>
+
           <div class="stage-fallback" id="stage-fallback" role="alert" hidden>
             <p class="stage-fallback-title">Podgląd 3D jest niedostępny</p>
-            <p>Twoja przeglądarka lub karta graficzna nie obsługuje WebGL 2. Konfigurator i cena nadal działają. Spróbuj w aktualnej wersji Chrome, Firefoksa, Safari lub Edge.</p>
+            <p>Ta przeglądarka lub karta graficzna nie obsługuje WebGL 2, więc nie możemy pokazać modelu w 3D. Konfiguracja, cena, zapisywanie i porównywanie działają normalnie. Spróbuj w aktualnej wersji Chrome, Edge, Firefoksa lub Safari albo włącz akcelerację sprzętową.</p>
           </div>
         </section>
 
-        <aside class="panel" aria-label="Opcje produktu">
-          <section class="group" aria-labelledby="g-shape">
-            <h2 class="group-title" id="g-shape">Kształt</h2>
-            <div class="options options-shape" role="group" aria-labelledby="g-shape" id="opt-shape"></div>
-          </section>
-
-          <section class="group" aria-labelledby="g-color">
-            <div class="group-head">
-              <h2 class="group-title" id="g-color">Kolor</h2>
-              <span class="group-value" id="color-name" aria-hidden="true"></span>
+        <aside class="panel glass enter" style="--i: 2" id="panel" aria-label="Konfiguracja produktu" tabindex="-1">
+          <span class="panel-glow" aria-hidden="true"></span>
+          <div class="panel-scroll" id="panel-scroll">
+            <div class="panel-head">
+              <h2 class="panel-title">Twoja konfiguracja</h2>
+              <p class="panel-sub">Zmieniaj opcje, podgląd i cena reagują od razu.</p>
             </div>
-            <div class="options options-color" role="group" aria-labelledby="g-color" id="opt-color"></div>
-          </section>
 
-          <section class="group" aria-labelledby="g-finish">
-            <h2 class="group-title" id="g-finish">Wykończenie</h2>
-            <div class="options options-finish" role="group" aria-labelledby="g-finish" id="opt-finish"></div>
-          </section>
+            <section class="group" aria-labelledby="g-shape">
+              <div class="group-head">
+                <h3 class="group-title" id="g-shape">Model</h3>
+                <span class="group-value" id="v-shape"></span>
+              </div>
+              <div class="shape-grid" role="group" aria-labelledby="g-shape" id="opt-shape"><span class="grid-pill" aria-hidden="true"></span></div>
+            </section>
 
-          <section class="group" aria-labelledby="g-view">
-            <h2 class="group-title" id="g-view">Widok</h2>
-            <div class="view-rows">
-              <div class="row">
-                <span class="row-label" id="l-rotate">Obrót automatyczny</span>
-                <button type="button" class="switch" id="toggle-rotate" aria-pressed="false" aria-label="Obrót automatyczny"><span class="switch-knob"></span></button>
+            <section class="group" aria-labelledby="g-color">
+              <div class="group-head">
+                <h3 class="group-title" id="g-color">Kolor</h3>
+                <span class="group-value" id="v-color"></span>
               </div>
-              <div class="row row-slider">
-                <label class="row-label" for="speed">Prędkość</label>
-                <input type="range" id="speed" min="2" max="20" step="1" value="6" />
-                <output class="row-value" id="speed-value" for="speed">6 obr./min</output>
+              <div class="swatches" role="group" aria-labelledby="g-color" id="opt-color"><span class="swatch-ring" aria-hidden="true"></span></div>
+            </section>
+
+            <section class="group" aria-labelledby="g-finish">
+              <div class="group-head">
+                <h3 class="group-title" id="g-finish">Wykończenie</h3>
+                <span class="group-value" id="v-finish"></span>
               </div>
-              <div class="row">
-                <span class="row-label" id="l-wire">Siatka (wireframe)</span>
-                <button type="button" class="switch" id="toggle-wire" aria-pressed="false" aria-label="Siatka (wireframe)"><span class="switch-knob"></span></button>
+              <div class="seg seg-finish" role="group" aria-labelledby="g-finish" id="opt-finish" style="--n: 4"><span class="seg-pill" aria-hidden="true"></span></div>
+              <p class="group-note" id="finish-note"></p>
+            </section>
+
+            <section class="group" aria-labelledby="g-size">
+              <div class="group-head">
+                <h3 class="group-title" id="g-size">Rozmiar</h3>
+                <span class="group-value" id="v-size"></span>
               </div>
-              <div class="row">
-                <span class="row-label" id="l-theme">Tło</span>
-                <div class="segmented" role="group" aria-labelledby="l-theme">
-                  <button type="button" class="segment" data-theme-value="light" aria-pressed="true">Jasne</button>
-                  <button type="button" class="segment" data-theme-value="dark" aria-pressed="false">Ciemne</button>
-                </div>
+              <div class="seg seg-size" role="group" aria-labelledby="g-size" id="opt-size" style="--n: 3"><span class="seg-pill" aria-hidden="true"></span></div>
+            </section>
+
+            <section class="group group-lazy" aria-labelledby="g-extras">
+              <div class="group-head">
+                <h3 class="group-title" id="g-extras">Dodatki</h3>
               </div>
+              <div class="extras" role="group" aria-labelledby="g-extras" id="opt-extras"></div>
+            </section>
+
+            <section class="group group-lazy about" aria-labelledby="g-about">
+              <h3 class="group-title" id="g-about">O produkcie</h3>
+              <p>Każdy egzemplarz jest toczony na kole i szkliwiony ręcznie, dlatego drobne różnice w odcieniu są naturalne. Czas realizacji: 10–14 dni roboczych. Produkty i ceny w tym demo są przykładowe.</p>
+            </section>
+          </div>
+
+          <footer class="summary" aria-label="Podsumowanie">
+            <button type="button" class="summary-toggle" id="summary-toggle" aria-expanded="true" aria-controls="price-lines">
+              <span>Szczegóły ceny</span><span data-icon="chevron" class="summary-chevron"></span>
+            </button>
+            <div class="price-lines-wrap" id="price-lines-wrap">
+              <ul class="price-lines" id="price-lines"></ul>
             </div>
-          </section>
-
-          <section class="summary" aria-label="Podsumowanie">
-            <p class="summary-text" id="summary"></p>
-            <p class="summary-total" aria-live="polite">Razem: <strong id="price"></strong></p>
+            <div class="total">
+              <div class="total-text">
+                <span class="total-label">Razem</span>
+                <span class="total-vat" id="price-vat"></span>
+              </div>
+              <strong class="total-value" id="price-total" aria-hidden="true">0 zł</strong>
+            </div>
             <div class="actions">
-              <button type="button" class="btn btn-primary" id="btn-png">Zapisz obraz PNG</button>
-              <button type="button" class="btn" id="btn-link">Kopiuj link</button>
+              <button type="button" class="btn btn-primary" id="btn-save"><span data-icon="plus"></span><span>Zapisz konfigurację</span></button>
+              <button type="button" class="btn btn-icon" id="btn-export" aria-label="Eksport PNG" title="Eksport PNG (E)"><span data-icon="download"></span></button>
+              <button type="button" class="btn btn-icon" id="btn-share" aria-label="Kopiuj link do konfiguracji" title="Kopiuj link"><span data-icon="link"></span></button>
             </div>
-          </section>
+          </footer>
         </aside>
       </main>
-
-      <footer class="app-footer">Three.js · TypeScript · Vite · dane przykładowe</footer>
     </div>
 
+    <dialog class="dialog glass" id="dlg-saved" aria-labelledby="dlg-saved-title">
+      <div class="dialog-head">
+        <div>
+          <h2 class="dialog-title" id="dlg-saved-title">Zapisane konfiguracje</h2>
+          <p class="dialog-sub" id="saved-sub">Zaznacz dwie, aby porównać je obok siebie.</p>
+        </div>
+        <button type="button" class="icon-btn" data-close aria-label="Zamknij"><span data-icon="close"></span></button>
+      </div>
+      <div class="saved-list" id="saved-list"></div>
+      <div class="dialog-foot">
+        <button type="button" class="btn" id="btn-save-current"><span data-icon="plus"></span><span>Zapisz bieżącą</span></button>
+        <button type="button" class="btn btn-primary" id="btn-compare" disabled><span data-icon="compare"></span><span id="btn-compare-label">Porównaj</span></button>
+      </div>
+    </dialog>
+
+    <dialog class="dialog dialog-wide glass" id="dlg-compare" aria-labelledby="dlg-compare-title">
+      <div class="dialog-head">
+        <div>
+          <h2 class="dialog-title" id="dlg-compare-title">Porównanie</h2>
+          <p class="dialog-sub">Różnice są wyróżnione.</p>
+        </div>
+        <button type="button" class="icon-btn" data-close aria-label="Zamknij"><span data-icon="close"></span></button>
+      </div>
+      <div class="compare" id="compare-body"></div>
+    </dialog>
+
+    <dialog class="dialog glass" id="dlg-export" aria-labelledby="dlg-export-title">
+      <div class="dialog-head">
+        <div>
+          <h2 class="dialog-title" id="dlg-export-title">Eksport obrazu PNG</h2>
+          <p class="dialog-sub">Ujęcie 3/4 produktu w wysokiej rozdzielczości.</p>
+        </div>
+        <button type="button" class="icon-btn" data-close aria-label="Zamknij"><span data-icon="close"></span></button>
+      </div>
+      <div class="export-preview" id="export-preview"><img alt="" id="export-thumb" /></div>
+      <div class="field">
+        <span class="field-label" id="ex-bg-label">Tło</span>
+        <div class="seg" role="group" aria-labelledby="ex-bg-label" id="ex-bg" style="--n: 2"><span class="seg-pill" aria-hidden="true"></span></div>
+      </div>
+      <div class="field">
+        <span class="field-label" id="ex-size-label">Rozdzielczość</span>
+        <div class="seg" role="group" aria-labelledby="ex-size-label" id="ex-size" style="--n: 3"><span class="seg-pill" aria-hidden="true"></span></div>
+      </div>
+      <div class="dialog-foot">
+        <button type="button" class="btn" data-close>Anuluj</button>
+        <button type="button" class="btn btn-primary" id="btn-export-go"><span data-icon="download"></span><span>Pobierz PNG</span></button>
+      </div>
+    </dialog>
+
+    <dialog class="dialog glass" id="dlg-help" aria-labelledby="dlg-help-title">
+      <div class="dialog-head">
+        <div>
+          <h2 class="dialog-title" id="dlg-help-title">Skróty klawiszowe</h2>
+          <p class="dialog-sub">Działają, gdy fokus nie jest w polu tekstowym.</p>
+        </div>
+        <button type="button" class="icon-btn" data-close aria-label="Zamknij"><span data-icon="close"></span></button>
+      </div>
+      <dl class="shortcuts" id="shortcut-list"></dl>
+    </dialog>
+
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <div class="sr-only" id="live" aria-live="polite"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
