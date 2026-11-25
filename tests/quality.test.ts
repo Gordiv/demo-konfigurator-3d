@@ -48,6 +48,19 @@ describe('AdaptivePixelRatio', () => {
     expect(quality.current).toBe(1);
   });
 
+  it('steps down one halving at a time to the minimum', () => {
+    const quality = new AdaptivePixelRatio(2, 0.5);
+    expect(feed(quality, 40, 2500)).toEqual([1, 0.5]);
+    expect(feed(quality, 40, 5000)).toEqual([]);
+    expect(quality.current).toBe(0.5);
+  });
+
+  it('steps back up one level once frames are stable', () => {
+    const quality = new AdaptivePixelRatio(1, 0.5);
+    expect(feed(quality, 40, 1500)).toEqual([0.5]);
+    expect(feed(quality, 8, 6000)).toEqual([1]);
+  });
+
   it('does nothing on screens with a pixel ratio of 1', () => {
     const quality = new AdaptivePixelRatio(1);
     expect(feed(quality, 50, 5000)).toEqual([]);

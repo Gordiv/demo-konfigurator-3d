@@ -9,8 +9,8 @@ const STABLE_WINDOW_MS = 5000;
 const MAX_DOWNGRADES = 2;
 
 /**
- * Lowers the pixel ratio to `min` when rendering stays slow and restores it once frames are stable again.
- * After the second downgrade it stays at `min` to avoid oscillating.
+ * Lowers the pixel ratio one step (halving, down to `min`) when rendering stays slow and raises it
+ * one step once frames are stable again. After the second downgrade it never raises it, to avoid oscillating.
  */
 export class AdaptivePixelRatio {
   current: number;
@@ -23,7 +23,7 @@ export class AdaptivePixelRatio {
 
   constructor(max: number, min = 1) {
     this.max = max;
-    this.min = min;
+    this.min = Math.min(min, max);
     this.current = max;
   }
 
@@ -35,26 +35,31 @@ export class AdaptivePixelRatio {
     if (this.average > SLOW_MS && this.current > this.min) {
       this.stableFor = 0;
       this.slowFor += frameMs;
-      if (this.slowFor >= SLOW_WINDOW_MS) return this.change(this.min, true);
+      if (this.slowFor >= SLOW_WINDOW_MS) return this.change(Math.max(this.min, this.current / 2), true);
       return null;
     }
     this.slowFor = 0;
 
     if (this.average < FAST_MS && this.current < this.max && this.downgrades < MAX_DOWNGRADES) {
       this.stableFor += frameMs;
-      if (this.stableFor >= STABLE_WINDOW_MS) return this.change(this.max, false);
+      if (this.stableFor >= STABLE_WINDOW_MS) return this.change(Math.min(this.max, this.current * 2), false);
     } else {
       this.stableFor = 0;
     }
     return null;
   }
 
-  private change(ratio: number, downgrade: boolean): number {
-    if (downgrade) this.downgrades++;
-    this.current = ratio;
+  /** Forgets the running average, e.g. after an idle period. */
+  resetAverage(): void {
     this.average = 16.7;
     this.slowFor = 0;
     this.stableFor = 0;
+  }
+
+  private change(ratio: number, downgrade: boolean): number {
+    if (downgrade) this.downgrades++;
+    this.current = ratio;
+    this.resetAverage();
     return ratio;
   }
 }
