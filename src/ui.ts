@@ -282,7 +282,7 @@ export function createUI(handlers: UIHandlers, reducedMotion: boolean): UI {
     summaryToggle.setAttribute('aria-expanded', String(open));
     linesWrap.classList.toggle('is-collapsed', !open);
   };
-  setExpanded(!narrow.matches);
+  setExpanded(!narrow.matches && window.innerHeight >= 960);
   summaryToggle.addEventListener('click', () => setExpanded(summaryToggle.getAttribute('aria-expanded') !== 'true'));
   const lineItems = new Map<string, HTMLLIElement>();
 
