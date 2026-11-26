@@ -441,7 +441,11 @@ export function createStage(container: HTMLElement, options: StageOptions): Stag
     dragging = false;
     invalidate();
   });
-  controls.addEventListener('change', invalidate);
+  // OrbitControls applies wheel zoom synchronously, so the next frame sees no movement: force a redraw.
+  controls.addEventListener('change', () => {
+    dirty = true;
+    invalidate();
+  });
 
   function applyLayout(): void {
     const sx = width / 2 - (insets.left + (width - insets.right)) / 2;
